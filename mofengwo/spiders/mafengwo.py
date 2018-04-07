@@ -9,6 +9,7 @@ from mofengwo.items import  TravelHotelItem, TravelreviewItem, TravelFoodItem, T
 
 class Data_Crawl(scrapy.Spider):
     name = 'mafengwo'
+<<<<<<< HEAD
     allowed_domains = ['www.mafengwo.cn', 'pagelet.mafengwo.cn']
     start_urls = ["成都", "重庆", "西安", "厦门", "上海", "北京", "青海", "新疆", "苏州", "杭州", "云南", "泰国", "台湾", "日本"]
     host = "http://www.mafengwo.cn/search/s.php?q="
@@ -61,6 +62,35 @@ class Data_Crawl(scrapy.Spider):
         type = response.meta["type"]
         infos = response.xpath('//ul[@class="seg-info-list clearfix"]').extract()
         titles = response.xpath('//div[@class="ct-text "]/h3').extract()
+=======
+    allowed_domains = ['www.mafengwo.cn']
+    start_urls = ["成都", "重庆", "西安", "厦门", "上海", "北京", "青海", "新疆", "苏州", "杭州", "云南", "泰国", "台湾", "日本"]
+
+    host = "http://www.mafengwo.cn/search/s.php?q="
+
+    def start_requests(self):
+        page_num = 50
+        for i in range(len(self.start_urls)):
+            for j in range(1, page_num+1):
+                # 酒店
+                # yield scrapy.Request(self.host + self.start_urls[i] + "&p=" + str(j) + "&t=hotel&kt=1", meta={"type": 0, "location": self.start_urls[i]}, callback=self.parse_info)
+                # 景点
+                # yield scrapy.Request(self.host + self.start_urls[i] + "&p=" + str(j) + "&t=poi&kt=1", meta={"type": 1, "location": self.start_urls[i]}, callback=self.parse_info)
+                # # 美食
+                yield scrapy.Request(self.host + self.start_urls[i] + "&p=" + str(j) + "&t=cate&kt=1", meta={"type": 2,
+                                                    "location": self.start_urls[i]}, callback=self.parse_info)
+                # # 游记
+                # yield scrapy.Request(self.host + self.start_urls[i] + "&p=" + str(j) + "&t=info&kt=1", meta={"type": 3, "location": self.start_urls[i]}, callback=self.parse_info)
+                time.sleep(10)
+
+    def parse_info(self, response):
+        ids = response.xpath('//div[@class="ct-text"]/h3/a/@href').re(r'\d+')
+        urls = response.xpath('//div[@class="ct-text"]/h3/a/@href').extract()
+        names = response.xpath('//div[@class="ct-text"]/h3/a/text()').extract()
+        type = response.meta["type"]
+        infos = response.xpath('//ul[@class="seg-info-list clearfix"]').extract()
+        titles = response.xpath('//div[@class="ct-text"]/h3').extract()
+>>>>>>> origin/master
 
         if type == 0:
             for i in range(len(ids)):
@@ -77,7 +107,11 @@ class Data_Crawl(scrapy.Spider):
                 item["info"] = BeautifulSoup(infos[i], "lxml").get_text().replace("\n", "").replace(" ", "")
                 item["attraction_id"] = ids[i]
                 item["attraction"] = names[i]
+<<<<<<< HEAD
                 yield scrapy.Request(url="http://pagelet.mafengwo.cn/poi/pagelet/poiCommentListApi?params={\"poi_id\":" +ids[i] + "}", meta={"type": type, "item": item}, callback=self.parse_review)
+=======
+                yield scrapy.Request(url="http://www.mafengwo.cn/poi/pagelet/poiCommentListApi?params=%7B%22poi_id%22%3A%22" +ids[i] + "%22%2C%22page%22%3A1%2C%22just_comment%22%3A1%7D", meta={"type": type, "item": item}, callback=self.parse_review)
+>>>>>>> origin/master
         elif type == 2:
             for i in range(len(ids)):
                 item = TravelFoodItem()
@@ -93,7 +127,11 @@ class Data_Crawl(scrapy.Spider):
                 item["info"] = BeautifulSoup(infos[i], "lxml").get_text().replace("\n", "").replace(" ", "")
                 item["note_id"] = ids[i]
                 item["note_title"] = BeautifulSoup(titles[i],"lxml").get_text().replace("\n", "").replace(" ", "")
+<<<<<<< HEAD
                 yield scrapy.Request(url=urls[i], meta={"type": type, "item": item}, callback=self.parse_travel_note)
+=======
+                yield scrapy.Request(url=urls[i], meta={"type": type, "item": item}, callback=self.parse_review)
+>>>>>>> origin/master
 
     def parse_review(self, response):
         self.log('fetched %s' % response.url)
@@ -140,7 +178,11 @@ class Data_Crawl(scrapy.Spider):
             except:
                 total_page = 1
             for page in range(1, total_page + 1):
+<<<<<<< HEAD
                 url = "http://pagelet.mafengwo.cn/poi/pagelet/poiCommentListApi?params={\"poi_id\":\"%s\",\"page\":%s,\"just_comment\":1}"
+=======
+                url = "http://www.mafengwo.cn/poi/pagelet/poiCommentListApi?params={\"poi_id\":\"%s\",\"page\":%s,\"just_comment\":1}"
+>>>>>>> origin/master
                 soup = json.loads(requests.get(url % (data_item["attraction_id"], str(page))).text)["data"]["html"]
                 soup = BeautifulSoup('<html><head></head><body>' + soup + '</body></html>', 'lxml')
                 tmp = soup.find_all("li", attrs={"class": "rev-item comment-item clearfix"})
@@ -174,7 +216,11 @@ class Data_Crawl(scrapy.Spider):
                                 os.mkdir(filepath1)
                             for j in range(len(review_item["image_urls"])):
                                 temp1 = filepath1 + '/%s.jpg' % review_item["image_id"][j]
+<<<<<<< HEAD
                                 urllib.request.urlretrieve(review_item["image_urls"][j], temp1)
+=======
+                                urllib.urlretrieve(review_item["image_urls"][j], temp1)
+>>>>>>> origin/master
                     review_item["content"] = tmp[i].find("p", attrs={"class": "rev-txt"}).get_text()
                     review_item["time"] = tmp[i].find("span", attrs={"class": "time"}).get_text()
                     data_item['review'].append(review_item)
@@ -216,7 +262,11 @@ class Data_Crawl(scrapy.Spider):
 
     def parse_travel_note(self, response):
         self.log('fetched %s' % response.url)
+<<<<<<< HEAD
         note_item = response.meta['item']
+=======
+        note_item = response.meta["item"]
+>>>>>>> origin/master
         # —*-游记内容-*-
         note = response.xpath('//p[@class="_j_note_content _j_seqitem"]/text()').extract()
         if note:
@@ -247,5 +297,8 @@ class Data_Crawl(scrapy.Spider):
             note_item["day"] = day[-1]
         else:
             note_item["day"] = ""
+<<<<<<< HEAD
         time.sleep(5)
+=======
+>>>>>>> origin/master
         yield note_item
